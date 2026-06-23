@@ -1,0 +1,11 @@
+{
+  "name": "@tarsen/core",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist/index.js", "dist/index.d.ts", "README.md"],
+  "scripts": { "build": "tsc -p tsconfig.json", "test": "vitest run", "prepack": "npm run build" },
+  "license": "Apache-2.0",
+  "devDependencies": { "typescript": "^5.9.0", "vitest": "^3.2.0", "@types/node": "^22.0.0" }
+}

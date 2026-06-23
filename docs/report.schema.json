@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tarsen.dev/schemas/report-1.0.json",
+  "title": "Tarsen risk report",
+  "type": "object",
+  "required": ["schemaVersion", "package", "version", "risk", "score", "recommendation", "signals", "metadata", "analyzedAt", "stats"],
+  "properties": {
+    "schemaVersion": { "const": "1.0" },
+    "package": { "type": "string" },
+    "version": { "type": "string" },
+    "risk": { "enum": ["low", "medium", "high", "unknown"] },
+    "score": { "type": "integer", "minimum": 0, "maximum": 100 },
+    "recommendation": { "enum": ["safe_to_run", "ask_user", "do_not_run_without_user_confirmation", "unknown_ask_user"] },
+    "signals": { "type": "array", "items": { "type": "object", "required": ["type", "severity", "message"], "properties": { "type": {"type":"string"}, "severity": {"enum":["low","medium","high"]}, "message": {"type":"string"}, "file": {"type":"string"}, "evidence": {"type":"string"} } } },
+    "metadata": { "type": "object" },
+    "analyzedAt": { "type": "string", "format": "date-time" },
+    "stats": { "type": "object", "required": ["filesScanned", "bytesScanned", "truncated"] }
+  }
+}

@@ -1,0 +1,33 @@
+# dependencies
+node_modules
+
+# build output
+.next
+dist
+build
+*.tsbuildinfo
+
+# packaging artifacts
+outputs
+*.tgz
+
+# testing
+coverage
+
+# env files (keep the example)
+.env*
+!.env.example
+
+# logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# tooling caches
+.eslintcache
+.vercel
+.turbo
+
+# OS
+.DS_Store

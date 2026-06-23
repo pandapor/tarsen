@@ -1,0 +1,35 @@
+{
+  "name": "@tarsen/cli",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "tarsen": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx src/index.ts",
+    "prepack": "npm run build"
+  },
+  "dependencies": {
+    "@tarsen/core": "0.1.0",
+    "commander": "15.0.0",
+    "npm-package-arg": "13.0.2",
+    "semver": "7.7.4",
+    "tar": "7.5.16"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/npm-package-arg": "^6.1.4",
+    "@types/semver": "^7.7.1",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0"
+  },
+  "license": "Apache-2.0"
+}

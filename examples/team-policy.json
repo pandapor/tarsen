@@ -1,0 +1,7 @@
+{
+  "block": ["lifecycle_script", "dangerous_execution", "dynamic_execution"],
+  "requireConfirmation": ["network_access", "filesystem_write", "metadata_risk"],
+  "allowPackages": ["react", "@tarsen/*"],
+  "blockPackages": [],
+  "defaultDecision": "warn"
+}
