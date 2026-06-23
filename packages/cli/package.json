@@ -1,13 +1,16 @@
 {
   "name": "@tarsen/cli",
   "version": "0.1.0",
+  "description": "Tarsen CLI: check executable npm packages before you run them. Local-first, no cloud, no telemetry.",
   "type": "module",
   "bin": {
     "tarsen": "dist/index.js"
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "package.json",
+    "LICENSE"
   ],
   "engines": {
     "node": ">=20"
@@ -15,7 +18,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "dev": "tsx src/index.ts",
-    "prepack": "npm run build"
+    "test": "vitest run"
   },
   "dependencies": {
     "@tarsen/core": "0.1.0",
@@ -29,7 +32,8 @@
     "@types/npm-package-arg": "^6.1.4",
     "@types/semver": "^7.7.1",
     "tsx": "^4.20.0",
-    "typescript": "^5.9.0"
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0"
   },
   "license": "Apache-2.0"
 }

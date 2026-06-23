@@ -2,11 +2,15 @@
   "name": "tarsen",
   "private": true,
   "version": "0.1.0",
-  "workspaces": ["apps/*", "packages/*", "integrations/*"],
+  "description": "Tarsen checks executable npm packages before developers or AI agents run them. Local-first CLI, no cloud in the MVP.",
+  "license": "Apache-2.0",
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "npm run dev --workspace @tarsen/web",
-    "build": "npm run build --workspace @tarsen/core && npm run build --workspace @tarsen/cli && npm run build --workspace @tarsen/web",
-    "test": "npm run test --workspaces --if-present",
-    "package": "scripts/package"
+    "build": "npm run build --workspace @tarsen/core && npm run build --workspace @tarsen/cli",
+    "test": "npm run test --workspace @tarsen/core && npm run test --workspace @tarsen/cli",
+    "smoke": "tsx scripts/smoke-test.ts",
+    "package": "bash scripts/package"
   }
 }

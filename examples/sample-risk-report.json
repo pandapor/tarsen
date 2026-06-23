@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "1.0",
+  "package": "react",
+  "version": "19.2.7",
+  "risk": "low",
+  "score": 2,
+  "recommendation": "safe_to_run",
+  "signals": [
+    {
+      "type": "environment_access",
+      "severity": "low",
+      "message": "runtime environment mode access detected",
+      "file": "cjs/react-jsx-dev-runtime.development.js",
+      "evidence": "line 12"
+    },
+    {
+      "type": "environment_access",
+      "severity": "low",
+      "message": "runtime environment mode access detected",
+      "file": "cjs/react-jsx-runtime.development.js",
+      "evidence": "line 12"
+    }
+  ],
+  "metadata": {
+    "name": "react",
+    "version": "19.2.7",
+    "description": "React is a JavaScript library for building user interfaces.",
+    "repository": "git+https://github.com/facebook/react.git",
+    "maintainers": ["fb", "react-bot"],
+    "publishedAt": "2026-06-01T18:00:48.323Z",
+    "dependencies": 0,
+    "scripts": {},
+    "tarball": "https://registry.npmjs.org/react/-/react-19.2.7.tgz",
+    "unpackedSize": 171604,
+    "fileCount": 27
+  },
+  "analyzedAt": "2026-06-23T16:37:26.090Z",
+  "stats": {
+    "filesScanned": 25,
+    "bytesScanned": 169358,
+    "truncated": false
+  }
+}

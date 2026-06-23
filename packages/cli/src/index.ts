@@ -1,33 +1,94 @@
 #!/usr/bin/env node
+// tarsen — check executable npm packages before they run.
+//
+// Instead of `npx some-package`, run `tarsen run some-package`. Tarsen checks
+// the package first, prints a risk report, and only invokes npx after an
+// explicit interactive confirmation.
+//
+// MVP scope: `check` and `run` only. There is no cloud connection, no telemetry,
+// no login, and no team policy commands in this build.
+
 import { Command } from "commander";
-import { lstat, mkdtemp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { basename, join, normalize } from "node:path";
 import { spawn } from "node:child_process";
-import { createInterface } from "node:readline/promises";
-import npa from "npm-package-arg";
-import { maxSatisfying, valid } from "semver";
-import * as tar from "tar";
-import { analyzePackage, evaluatePolicy, type PackageMetadata, type RiskReport, type TeamPolicy } from "@tarsen/core";
+import { unknownReport, type RiskReport } from "@tarsen/core";
+import { askToRun, canConfirmInteractive } from "./confirm.js";
+import { printReport } from "./render.js";
+import { checkPackage } from "./pipeline.js";
 
-const MAX_TARBALL_BYTES=50*1024*1024,MAX_FILES=10_000,MAX_SCAN_BYTES=30*1024*1024,MAX_FILE_BYTES=2*1024*1024;
-const codeExtensions=/\.(?:[cm]?[jt]sx?|json)$/i;
+const program = new Command()
+  .name("tarsen")
+  .description("Check executable npm packages before they run.")
+  .version("0.1.0");
 
-async function fetchWithLimits(url:string,maxBytes:number){const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),20_000);try{const response=await fetch(url,{signal:controller.signal,headers:{"user-agent":"tarsen/0.1.0"}});if(!response.ok)throw new Error(`HTTP ${response.status} from npm registry`);const length=Number(response.headers.get("content-length")??0);if(length>maxBytes)throw new Error(`download exceeds ${Math.round(maxBytes/1024/1024)} MB safety limit`);const reader=response.body?.getReader();if(!reader)throw new Error("registry returned no response body");const chunks:Uint8Array[]=[];let total=0;while(true){const{done,value}=await reader.read();if(done)break;total+=value.byteLength;if(total>maxBytes){await reader.cancel();throw new Error(`download exceeds ${Math.round(maxBytes/1024/1024)} MB safety limit`);}chunks.push(value);}return Buffer.concat(chunks);}finally{clearTimeout(timer);}}
-async function readJson(url:string){return JSON.parse((await fetchWithLimits(url,20*1024*1024)).toString("utf8"));}
-async function walk(dir:string){const output:Array<{path:string;content:string}>=[];let bytes=0,truncated=false;async function visit(current:string){for(const entry of await readdir(current,{withFileTypes:true})){if(output.length>=MAX_FILES||bytes>=MAX_SCAN_BYTES){truncated=true;return;}const full=join(current,entry.name);const stat=await lstat(full);if(stat.isSymbolicLink())continue;if(stat.isDirectory()){await visit(full);continue;}if(!stat.isFile()||!codeExtensions.test(entry.name)||stat.size>MAX_FILE_BYTES)continue;const content=await readFile(full,"utf8").catch(()=>"");bytes+=Buffer.byteLength(content);output.push({path:full.slice(dir.length+1),content});}}await visit(dir);return{files:output,truncated};}
-function resolveVersion(data:any,spec:string){if(!spec||spec==="*"||spec==="latest")return data["dist-tags"]?.latest; if(data["dist-tags"]?.[spec])return data["dist-tags"][spec];if(valid(spec)&&data.versions?.[spec])return spec;return maxSatisfying(Object.keys(data.versions??{}),spec)??null;}
-export async function checkPackage(packageSpec:string):Promise<RiskReport>{const parsed=npa(packageSpec);if(!parsed.registry||!parsed.name)throw new Error("only npm registry package specs are supported");const registryName=parsed.name.replace("/","%2f");const data=await readJson(`https://registry.npmjs.org/${registryName}`);const version=resolveVersion(data,parsed.rawSpec);if(!version)throw new Error(`no matching version found for ${packageSpec}`);const manifest=data.versions[version];if(!manifest?.dist?.tarball)throw new Error("package tarball is unavailable");const tarball=String(manifest.dist.tarball);const metadata:PackageMetadata={name:manifest.name,version,description:manifest.description,repository:typeof manifest.repository==="string"?manifest.repository:manifest.repository?.url??null,maintainers:(manifest.maintainers??data.maintainers??[]).map((m:any)=>m.name??m.email).filter(Boolean),publishedAt:data.time?.[version],dependencies:Object.keys(manifest.dependencies??{}).length,scripts:manifest.scripts??{},tarball,unpackedSize:manifest.dist.unpackedSize,fileCount:manifest.dist.fileCount,bin:manifest.bin};const dir=await mkdtemp(join(tmpdir(),"tarsen-"));try{const tgz=join(dir,"package.tgz"),extract=join(dir,"extract");await writeFile(tgz,await fetchWithLimits(tarball,MAX_TARBALL_BYTES));await mkdir(extract);let entries=0;await tar.x({file:tgz,cwd:extract,strict:true,preservePaths:false,strip:1,filter:(path,entry)=>{entries++;const clean=normalize(path);const type="type" in entry?entry.type:"";return entries<=MAX_FILES&&!clean.startsWith("..")&&!clean.startsWith("/")&&type!=="SymbolicLink"&&type!=="Link";}});const scanned=await walk(extract);return analyzePackage(metadata,scanned.files,{truncated:scanned.truncated||entries>MAX_FILES});}finally{await rm(dir,{recursive:true,force:true});}}
+// `tarsen check <package>` — analyze and print a report. `--json` emits a
+// single valid JSON object to stdout with no colors and no extra logs.
+program
+  .command("check")
+  .argument("<package>", "npm package spec, e.g. react or create-next-app@16")
+  .option("--json", "output a single valid JSON object, no colors or logs")
+  .description("Check a package and print a risk report")
+  .action(async (packageSpec: string, options: { json?: boolean }) => {
+    let report: RiskReport;
+    try {
+      report = await checkPackage(packageSpec);
+    } catch (error) {
+      report = unknownReport(packageSpec, error);
+      if (options.json) {
+        process.stdout.write(`${JSON.stringify(report)}\n`);
+      } else {
+        printReport(report);
+      }
+      process.exitCode = 2;
+      return;
+    }
+    if (options.json) {
+      process.stdout.write(`${JSON.stringify(report)}\n`);
+    } else {
+      printReport(report);
+    }
+  });
 
-function color(code:number,text:string){return process.stdout.isTTY?`\u001b[${code}m${text}\u001b[0m`:text;}
-function printReport(report:RiskReport){const riskColor=report.risk==="high"?31:report.risk==="medium"?33:32;console.log(`\n${color(1,"Tarsen Risk Report")}\n\nPackage: ${report.package}\nVersion: ${report.version}\nPublished: ${report.metadata.publishedAt??"unknown"}\nMaintainers: ${report.metadata.maintainers.join(", ")||"unknown"}\nRepository: ${report.metadata.repository??"missing"}\nDependencies: ${report.metadata.dependencies}\nFiles scanned: ${report.stats.filesScanned}${report.stats.truncated?" (limit reached)":""}\n\n${color(1,"Signals:")}`);if(!report.signals.length)console.log(color(32,"[✓] no risky static patterns detected"));for(const signal of report.signals)console.log(`${signal.severity==="high"?color(31,"[!]"):signal.severity==="medium"?color(33,"[·]"):color(36,"[i]")} ${signal.message}${signal.file?` in ${signal.file}`:""}${signal.evidence?` (${signal.evidence})`:""}`);console.log(`\nRisk: ${color(riskColor,report.risk.toUpperCase())} (${report.score}/100)\nRecommendation: ${report.recommendation}\n`);}
-function unknownReport(packageSpec:string,error:unknown){return{schemaVersion:"1.0",package:packageSpec,version:"unknown",risk:"unknown",score:0,recommendation:"unknown_ask_user",signals:[{type:"analysis_error",severity:"high",message:error instanceof Error?error.message:String(error)}],metadata:{name:packageSpec,version:"unknown",maintainers:[],dependencies:0,scripts:{}},analyzedAt:new Date().toISOString(),stats:{filesScanned:0,bytesScanned:0,truncated:false}} satisfies RiskReport;}
-async function optionallySync(report:RiskReport){const url=process.env.TARSEN_CLOUD_URL,key=process.env.TARSEN_API_KEY;if(!url||!key)return;await fetch(`${url.replace(/\/$/,"")}/api/report`,{method:"POST",headers:{"content-type":"application/json",authorization:`Bearer ${key}`},body:JSON.stringify(report)}).catch(()=>undefined);}
+// `tarsen run <package> [args...]` — check, print the report, then (only after
+// an interactive confirmation) hand off to npx. Refuses non-interactive runs.
+program
+  .command("run")
+  .argument("<package>", "npm package spec to execute via npx")
+  .argument("[args...]", "extra arguments forwarded to npx")
+  .description("Check a package, confirm, then execute it through npx")
+  .action(async (packageSpec: string, args: string[]) => {
+    let report: RiskReport;
+    try {
+      report = await checkPackage(packageSpec);
+    } catch (error) {
+      report = unknownReport(packageSpec, error);
+    }
+    printReport(report);
 
-const program=new Command().name("tarsen").description("Check npm packages before they run.").version("0.1.0");
-program.command("check").argument("<package>").option("--json","output valid JSON only").action(async(packageSpec,options)=>{try{const report=await checkPackage(packageSpec);if(options.json)process.stdout.write(`${JSON.stringify(report)}\n`);else printReport(report);await optionallySync(report);}catch(error){const report=unknownReport(packageSpec,error);if(options.json)process.stdout.write(`${JSON.stringify(report)}\n`);else printReport(report);process.exitCode=2;}});
-program.command("run").argument("<package>").argument("[args...]").description("Check, confirm, then execute through npx").action(async(packageSpec,args)=>{let report:RiskReport;try{report=await checkPackage(packageSpec);}catch(error){report=unknownReport(packageSpec,error);}printReport(report);if(!process.stdin.isTTY){console.error("Refusing to execute without an interactive user confirmation.");process.exitCode=3;return;}const rl=createInterface({input:process.stdin,output:process.stdout});const answer=await rl.question(`Proceed with npx ${packageSpec}? Type "run" to continue: `);rl.close();if(answer.trim()!=="run"){console.log("Cancelled.");return;}const child=spawn(process.platform==="win32"?"npx.cmd":"npx",["--yes",packageSpec,...args],{stdio:"inherit",shell:false});child.on("exit",code=>{process.exitCode=code??1;});});
-const policy=program.command("policy").description("Evaluate team policy locally");
-policy.command("test").argument("<package>").requiredOption("--file <path>","policy JSON file").option("--json").action(async(packageSpec,options)=>{try{const report=await checkPackage(packageSpec);const parsed=JSON.parse(await readFile(options.file,"utf8")) as TeamPolicy;const policyResult=evaluatePolicy(report,parsed);const result={report,policy:policyResult};if(options.json)process.stdout.write(`${JSON.stringify(result)}\n`);else{printReport(report);console.log(`Policy decision: ${policyResult.decision.toUpperCase()}\n${policyResult.reasons.join("\n")}`);}if(policyResult.decision==="block")process.exitCode=4;}catch(error){if(options.json)process.stdout.write(`${JSON.stringify({error:error instanceof Error?error.message:String(error)})}\n`);else console.error(error);process.exitCode=2;}});
-program.command("ci").argument("[packages...]").option("--policy <path>").description("Check one or more package specs for CI").action(async(packages,options)=>{if(!packages.length){console.error("Pass package specs to check, for example: tarsen ci lodash react");process.exitCode=2;return;}const reports=await Promise.all(packages.map((x:string)=>checkPackage(x).catch(e=>unknownReport(x,e))));let failed=false;let parsed:TeamPolicy|undefined;if(options.policy)parsed=JSON.parse(await readFile(options.policy,"utf8"));for(const report of reports){const decision=parsed?evaluatePolicy(report,parsed).decision:report.risk==="high"||report.risk==="unknown"?"block":"allow";console.log(`${report.package}@${report.version}\t${report.risk}\t${decision}`);if(decision==="block")failed=true;}if(failed)process.exitCode=4;});
-program.parseAsync().catch(error=>{console.error(error instanceof Error?error.message:error);process.exitCode=1;});
+    if (!canConfirmInteractive()) {
+      console.error(
+        'Refusing to execute without an interactive confirmation. Run "tarsen check" instead, or run "tarsen run" from an interactive terminal.',
+      );
+      process.exitCode = 3;
+      return;
+    }
+
+    const confirmed = await askToRun(packageSpec, args);
+    if (!confirmed) {
+      console.log("Cancelled.");
+      return;
+    }
+
+    const cmd = process.platform === "win32" ? "npx.cmd" : "npx";
+    const child = spawn(cmd, ["--yes", packageSpec, ...args], {
+      stdio: "inherit",
+      shell: false,
+    });
+    child.on("exit", (code) => {
+      process.exitCode = code ?? 1;
+    });
+  });
+
+program.parseAsync().catch((error) => {
+  console.error(error instanceof Error ? error.message : error);
+  process.exitCode = 1;
+});

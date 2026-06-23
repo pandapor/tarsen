@@ -1,0 +1,7 @@
+# Publish only dist + essential metadata (the `files` whitelist in package.json
+# is the primary control; this is a backstop).
+src
+**/*.test.ts
+tsconfig.json
+tsconfig.base.json
+.npmignore
