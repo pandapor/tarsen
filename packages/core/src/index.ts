@@ -1,4 +1,4 @@
-// @tarsen/core — static npm package analyzer.
+// tarsen-core — static npm package analyzer.
 //
 // Tarsen never executes package code during analysis and never runs install
 // scripts. This package only fetches metadata, scans extracted source files as

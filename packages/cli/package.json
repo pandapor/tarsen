@@ -1,7 +1,12 @@
 {
-  "name": "@tarsen/cli",
+  "name": "tarsen",
   "version": "0.1.0",
   "description": "Tarsen CLI: check executable npm packages before you run them. Local-first, no cloud, no telemetry.",
+  "keywords": ["npm", "npx", "security", "supply-chain", "cli", "malware", "static-analysis"],
+  "homepage": "https://github.com/pandapor/tarsen#readme",
+  "repository": { "type": "git", "url": "git+https://github.com/pandapor/tarsen.git", "directory": "packages/cli" },
+  "bugs": { "url": "https://github.com/pandapor/tarsen/issues" },
+  "publishConfig": { "access": "public" },
   "type": "module",
   "bin": {
     "tarsen": "dist/index.js"
@@ -21,7 +26,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@tarsen/core": "0.1.0",
+    "tarsen-core": "0.1.0",
     "commander": "15.0.0",
     "npm-package-arg": "13.0.2",
     "semver": "7.7.4",

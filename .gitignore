@@ -1,6 +1,9 @@
 # dependencies
 node_modules
 
+# Local product site — intentionally not part of the OSS repository
+/apps/web/
+
 # build output
 dist
 build

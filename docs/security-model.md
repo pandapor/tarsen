@@ -19,7 +19,7 @@ This document states the hard rules the implementation is built around.
 - **Protects against path traversal.** Every tarball entry is passed through a
   filter that rejects absolute paths, leading `../` segments, and any entry
   whose resolved path escapes the destination. See
-  [`@tarsen/core`'s `isTraversalAttempt`](../packages/core/src/tar.ts).
+  [`tarsen-core`'s `isTraversalAttempt`](../packages/core/src/tar.ts).
 - **Drops symlinks and hardlinks** during extraction and while walking.
 - **Cleans up temporary files** after every run, including on failure.
 - **Does not upload source code anywhere.** No part of the package leaves the

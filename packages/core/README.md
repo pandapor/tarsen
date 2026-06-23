@@ -1,9 +1,9 @@
-# @tarsen/core
+# tarsen-core
 
 Static npm package analysis for [Tarsen](../../README.md). Tarsen checks
 executable npm packages **before** developers or AI agents run them.
 
-`@tarsen/core` is a pure local analyzer. It **never executes package code**,
+`tarsen-core` is a pure local analyzer. It **never executes package code**,
 **never runs install scripts**, and **has no cloud connection or telemetry**.
 It turns registry metadata and extracted source files into a stable JSON risk
 report that the CLI (or any other tool) can render.
@@ -36,7 +36,7 @@ packages, and one-edit typosquatting against common package names.
 ## Usage
 
 ```ts
-import { analyzePackage, parseMetadata } from "@tarsen/core";
+import { analyzePackage, parseMetadata } from "tarsen-core";
 
 const metadata = parseMetadata(manifest, packument);
 const report = analyzePackage(metadata, [
@@ -48,7 +48,7 @@ const report = analyzePackage(metadata, [
 ## Safety guarantees
 
 This package only ever reads strings. It does not fetch from the network,
-execute code, or write anywhere — those concerns live in `@tarsen/cli`. The tar
+execute code, or write anywhere — those concerns live in `tarsen`. The tar
 helpers are pure predicates and filter factories; the actual extraction is
 driven by the CLI into a temporary directory that it owns and cleans up.
 

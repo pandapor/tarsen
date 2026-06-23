@@ -1,6 +1,10 @@
 {
-  "name": "@tarsen/core",
+  "name": "tarsen-core",
   "version": "0.1.0",
+  "description": "Static npm package risk analysis for Tarsen.",
+  "homepage": "https://github.com/pandapor/tarsen#readme",
+  "repository": { "type": "git", "url": "git+https://github.com/pandapor/tarsen.git", "directory": "packages/core" },
+  "publishConfig": { "access": "public" },
   "description": "Static npm package analysis, risk scoring, and safe tarball helpers for Tarsen. No cloud, no telemetry.",
   "type": "module",
   "main": "dist/index.js",

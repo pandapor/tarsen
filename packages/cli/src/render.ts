@@ -3,7 +3,7 @@
 // Color is applied ONLY when stdout is a TTY. JSON mode never calls into here;
 // it writes a single JSON object with no colors and no extra logs.
 
-import type { RiskReport } from "@tarsen/core";
+import type { RiskReport } from "tarsen-core";
 
 const isTty = process.stdout.isTTY === true;
 

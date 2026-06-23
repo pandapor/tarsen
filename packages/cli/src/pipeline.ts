@@ -3,7 +3,7 @@
 // Hard safety rules enforced here (see docs/security-model.md):
 //   - package code is NEVER executed and install scripts are NEVER run
 //   - tarballs are extracted ONLY into a temporary directory owned by Tarsen
-//   - path traversal and symlink/hardlink entries are rejected via @tarsen/core
+//   - path traversal and symlink/hardlink entries are rejected via tarsen-core
 //   - the temporary directory is always removed (finally block)
 //   - the only network call is to the public npm registry; there is no cloud
 
@@ -18,7 +18,7 @@ import {
   makeSafeFilter,
   parseMetadata,
   type RiskReport,
-} from "@tarsen/core";
+} from "tarsen-core";
 
 // Conservative limits to bound analysis time and memory on hostile packages.
 const MAX_TARBALL_BYTES = 50 * 1024 * 1024; // 50 MB cap on a single tarball

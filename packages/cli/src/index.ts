@@ -10,7 +10,7 @@
 
 import { Command } from "commander";
 import { spawn } from "node:child_process";
-import { unknownReport, type RiskReport } from "@tarsen/core";
+import { unknownReport, type RiskReport } from "tarsen-core";
 import { askToRun, canConfirmInteractive } from "./confirm.js";
 import { printReport } from "./render.js";
 import { checkPackage } from "./pipeline.js";

@@ -3,8 +3,8 @@
 // npx. The end-to-end registry path is covered by scripts/smoke-test.ts.
 
 import { describe, expect, it } from "vitest";
-import { analyzePackage, unknownReport, type RiskReport } from "@tarsen/core";
-import { parseMetadata } from "@tarsen/core";
+import { analyzePackage, unknownReport, type RiskReport } from "tarsen-core";
+import { parseMetadata } from "tarsen-core";
 import { canConfirmInteractive } from "./confirm.js";
 
 const meta = parseMetadata({
