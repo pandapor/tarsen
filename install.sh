@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-PACKAGE="tarsen"
+PACKAGE="tarsen-cli"
 VERSION="latest"
 MANAGER="${TARSEN_PM:-}"
 DRY_RUN=0

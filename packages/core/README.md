@@ -48,7 +48,7 @@ const report = analyzePackage(metadata, [
 ## Safety guarantees
 
 This package only ever reads strings. It does not fetch from the network,
-execute code, or write anywhere — those concerns live in `tarsen`. The tar
+execute code, or write anywhere — those concerns live in `tarsen-cli`. The tar
 helpers are pure predicates and filter factories; the actual extraction is
 driven by the CLI into a temporary directory that it owns and cleans up.
 

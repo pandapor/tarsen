@@ -1,10 +1,10 @@
-# tarsen
+# tarsen-cli
 
 The `tarsen` command — checks executable npm packages **before** they run. Part
 of [Tarsen](../../README.md), a local-first CLI safety layer for NPX.
 
 ```bash
-npm install --global tarsen
+npm install --global tarsen-cli
 tarsen check react
 tarsen check react --json
 tarsen run create-next-app my-app
@@ -55,8 +55,8 @@ See [`docs/security-model.md`](../../docs/security-model.md) for the full model.
 
 ```bash
 npm install            # from repo root
-npm run build --workspace tarsen
-npm test --workspace tarsen
+npm run build --workspace tarsen-cli
+npm test --workspace tarsen-cli
 ```
 
 The pipeline (`src/pipeline.ts`), renderer (`src/render.ts`), confirmation gate

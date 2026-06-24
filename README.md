@@ -51,25 +51,25 @@ Install globally with your preferred package manager:
 
 ```bash
 # npm
-npm install --global tarsen
+npm install --global tarsen-cli
 
 # pnpm
-pnpm add --global tarsen
+pnpm add --global tarsen-cli
 
 # Yarn Classic
-yarn global add tarsen
+yarn global add tarsen-cli
 
 # Bun
-bun add --global tarsen
+bun add --global tarsen-cli
 ```
 
 Or use it once without a global installation:
 
 ```bash
-npx tarsen check react
-pnpm dlx tarsen check react
-yarn dlx tarsen check react
-bunx tarsen check react
+npx tarsen-cli check react
+pnpm dlx tarsen-cli check react
+yarn dlx tarsen-cli check react
+bunx tarsen-cli check react
 ```
 
 Installer script (uses npm, pnpm, Yarn, or Bun already available on the
@@ -91,7 +91,7 @@ Project-local installation is also supported; invoke it through your package
 manager's runner:
 
 ```bash
-npm install --save-dev tarsen
+npm install tarsen-cli
 npx tarsen check react
 ```
 
@@ -105,7 +105,7 @@ npm run build
 # use it directly:
 node packages/cli/dist/index.js check react
 # or link the `tarsen` command:
-npm link --workspace tarsen
+npm link --workspace tarsen-cli
 ```
 
 Requires Node.js >= 20.
@@ -238,7 +238,7 @@ This repo is a small npm workspace:
 
 - [`tarsen-core`](packages/core) — static analyzer, risk scoring, report types,
   and safe tarball helpers. Pure local library; no network.
-- [`tarsen`](packages/cli) — the `tarsen` executable: registry fetch, safe
+- [`tarsen-cli`](packages/cli) — the `tarsen` executable: registry fetch, safe
   extraction, terminal/JSON rendering, confirmation gate, and `npx` hand-off.
 
 ## Roadmap
@@ -255,7 +255,7 @@ Contributions that keep Tarsen small, local-first, and trustworthy are welcome.
 
 ```bash
 npm install
-npm run build     # builds tarsen-core and tarsen
+npm run build     # builds tarsen-core and tarsen-cli
 npm test          # runs core + cli unit tests
 npm run smoke     # end-to-end check against the real registry (needs network)
 ```

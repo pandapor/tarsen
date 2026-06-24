@@ -1,5 +1,5 @@
 {
-  "name": "tarsen",
+  "name": "tarsen-cli",
   "version": "0.1.0",
   "description": "Tarsen CLI: check executable npm packages before you run them. Local-first, no cloud, no telemetry.",
   "keywords": ["npm", "npx", "security", "supply-chain", "cli", "malware", "static-analysis"],

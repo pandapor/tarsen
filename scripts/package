@@ -5,7 +5,7 @@ set -euo pipefail
 mkdir -p "$PWD/outputs"
 npm test
 npm run build --workspace tarsen-core
-npm run build --workspace tarsen
+npm run build --workspace tarsen-cli
 npm pack --workspace tarsen-core --pack-destination "$PWD/outputs"
-npm pack --workspace tarsen --pack-destination "$PWD/outputs"
+npm pack --workspace tarsen-cli --pack-destination "$PWD/outputs"
 echo "Packages written to ./outputs"
